@@ -68,6 +68,7 @@ class Exp_Informer(Exp_Basic):
             'WTH':Dataset_Custom,
             'ECL':Dataset_Custom,
             'Solar':Dataset_Custom,
+            'PJME':Dataset_Custom,
             'custom':Dataset_Custom,
         }
         Data = data_dict[self.args.data]
@@ -131,6 +132,14 @@ class Exp_Informer(Exp_Basic):
         if not os.path.exists(path):
             os.makedirs(path)
 
+                # 新增：记录每个 epoch 的 loss
+        history = {
+            'train_loss': [],
+            'vali_loss': [],
+            'test_loss': [],
+        }
+
+
         time_now = time.time()
         
         train_steps = len(train_loader)
@@ -178,6 +187,11 @@ class Exp_Informer(Exp_Basic):
             vali_loss = self.vali(vali_data, vali_loader, criterion)
             test_loss = self.vali(test_data, test_loader, criterion)
 
+            # 新增：保存到 history
+            history['train_loss'].append(float(train_loss))
+            history['vali_loss'].append(float(vali_loss))
+            history['test_loss'].append(float(test_loss))
+
             print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f}".format(
                 epoch + 1, train_steps, train_loss, vali_loss, test_loss))
             early_stopping(vali_loss, self.model, path)
@@ -189,7 +203,9 @@ class Exp_Informer(Exp_Basic):
             
         best_model_path = path+'/'+'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
-        
+
+        # 新增：保存 history
+        np.save(path + '/history.npy', history)
         return self.model
 
     def test(self, setting):

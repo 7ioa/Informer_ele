@@ -219,6 +219,13 @@ class Dataset_Custom(Dataset):
         self.scaler = StandardScaler()
         df_raw = pd.read_csv(os.path.join(self.root_path,
                                           self.data_path))
+        # Adapt common datetime column names to the expected `date`
+        if 'date' not in df_raw.columns and 'Datetime' in df_raw.columns:
+            df_raw = df_raw.rename(columns={'Datetime': 'date'})
+        # Ensure chronological order for time series slicing
+        if 'date' in df_raw.columns:
+            df_raw['date'] = pd.to_datetime(df_raw['date'])
+            df_raw = df_raw.sort_values('date').reset_index(drop=True)
         '''
         df_raw.columns: ['date', ...(other features), target feature]
         '''
@@ -316,6 +323,13 @@ class Dataset_Pred(Dataset):
         self.scaler = StandardScaler()
         df_raw = pd.read_csv(os.path.join(self.root_path,
                                           self.data_path))
+        # Adapt common datetime column names to the expected `date`
+        if 'date' not in df_raw.columns and 'Datetime' in df_raw.columns:
+            df_raw = df_raw.rename(columns={'Datetime': 'date'})
+        # Ensure chronological order for time series slicing
+        if 'date' in df_raw.columns:
+            df_raw['date'] = pd.to_datetime(df_raw['date'])
+            df_raw = df_raw.sort_values('date').reset_index(drop=True)
         '''
         df_raw.columns: ['date', ...(other features), target feature]
         '''
